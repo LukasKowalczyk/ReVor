@@ -18,9 +18,11 @@ public enum Mahlzeit {
     }
 
     public static Mahlzeit getMahlzeitOfWert(String value) {
-	for (Mahlzeit mahlzeit : values()) {
-	    if (mahlzeit.getWert().equals(value)) {
-		return mahlzeit;
+	if (value != null) {
+	    for (Mahlzeit mahlzeit : values()) {
+		if (mahlzeit.getWert().equals(value.toLowerCase())) {
+		    return mahlzeit;
+		}
 	    }
 	}
 	return JETZT;
@@ -33,14 +35,16 @@ public enum Mahlzeit {
     public static Mahlzeit ermittleAktuelleMahlzeit() {
 	DateTimeFormatter df = DateTimeFormatter.ofPattern("HH");
 	int tagesStunden = Integer.parseInt(LocalDateTime.now().format(df));
-	logger.debug("TAGES_STUNDE="+tagesStunden);
-	if (4 <= tagesStunden && tagesStunden < 12) {
+	logger.debug("TAGES_STUNDE=" + tagesStunden);
+	if (0 <= tagesStunden && tagesStunden < 4) {
+	    return ABEND;
+	} else if (4 <= tagesStunden && tagesStunden < 12) {
 	    return FRUEH;
 	} else if (12 <= tagesStunden && tagesStunden < 16) {
 	    return MITTAG;
-	} else if (16 <= tagesStunden && tagesStunden < 4) {
+	} else if (16 <= tagesStunden && tagesStunden < 24) {
 	    return ABEND;
 	}
-	return MITTAG;
+	return null;
     }
 }

@@ -11,9 +11,11 @@ public enum Schweregrad {
     }
 
     public static Schweregrad getSchweregradOfWert(String value) {
-	for (Schweregrad mahlzeit : values()) {
-	    if (mahlzeit.getWert().equals(value)) {
-		return mahlzeit;
+	if (value != null) {
+	    for (Schweregrad mahlzeit : values()) {
+		if (mahlzeit.getWert().equals(value.toLowerCase())) {
+		    return mahlzeit;
+		}
 	    }
 	}
 	return EGAL;

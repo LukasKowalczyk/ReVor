@@ -10,14 +10,32 @@ import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTable;
 
 @DynamoDBTable(tableName = "ReVorRezepte")
 public class Rezept {
+
+    private static final String TITEL_KEY_NAME = "titel";
+
+    private static final String ZUTATEN_KEY_NAME = "zutaten";
+
+    private static final String SCHWEREGRAD_KEY_NAME = "schweregrad";
+
+    private static final String ANLEITUNG_KEY_NAME = "anleitung";
+
+    private static final String MAHLZEIT_KEY_NAME = "mahlzeit";
+
+    private static final String ID_KEY_NAME = "ID";
+
     private Integer id;
+
     private String titel;
+
     private String mahlzeit;
+
     private String anleitung;
+
     private String schweregrad;
+
     private List<Zutat> zutaten;
 
-    @DynamoDBHashKey(attributeName = "ID")
+    @DynamoDBHashKey(attributeName = ID_KEY_NAME)
     public Integer getId() {
 	return id;
     }
@@ -26,6 +44,7 @@ public class Rezept {
 	this.id = id;
     }
 
+    @DynamoDBHashKey(attributeName = TITEL_KEY_NAME)
     public String getTitel() {
 	return titel;
     }
@@ -34,7 +53,7 @@ public class Rezept {
 	this.titel = titel;
     }
 
-    @DynamoDBAttribute(attributeName = "mahlzeit")
+    @DynamoDBAttribute(attributeName = MAHLZEIT_KEY_NAME)
     public String getMahlzeit() {
 	return mahlzeit;
     }
@@ -43,7 +62,7 @@ public class Rezept {
 	this.mahlzeit = mahlzeit;
     }
 
-    @DynamoDBAttribute(attributeName = "anleitung")
+    @DynamoDBAttribute(attributeName = ANLEITUNG_KEY_NAME)
     public String getAnleitung() {
 	return anleitung;
     }
@@ -52,7 +71,7 @@ public class Rezept {
 	this.anleitung = anleitung;
     }
 
-    @DynamoDBAttribute(attributeName = "schweregrad")
+    @DynamoDBAttribute(attributeName = SCHWEREGRAD_KEY_NAME)
     public String getSchweregrad() {
 	return schweregrad;
     }
@@ -61,7 +80,7 @@ public class Rezept {
 	this.schweregrad = schweregrad;
     }
 
-    @DynamoDBAttribute(attributeName = "zutaten")
+    @DynamoDBAttribute(attributeName = ZUTATEN_KEY_NAME)
     public List<Zutat> getZutaten() {
 	return zutaten;
     }
@@ -78,24 +97,50 @@ public class Rezept {
 
     public static Rezept mappeFromMap(Map<String, Object> input) {
 	Rezept rezept = new Rezept();
-	rezept.setAnleitung(input.get("anleitung").toString());
-	rezept.setTitel(input.get("titel").toString());
-	rezept.setId((Integer) input.get("id"));
-	rezept.setMahlzeit(input.get("mahlzeit").toString());
-	rezept.setSchweregrad(input.get("schweregrad").toString());
-	@SuppressWarnings("unchecked")
-	List<Map<String, Object>> inputZutaten = (List<Map<String, Object>>) input.get("zutaten");
-	ArrayList<Zutat> zutaten = new ArrayList<Zutat>();
-	for (Map<String, Object> iZutat : inputZutaten) {
-	    zutaten.add(Zutat.mappeFromMap(iZutat));
+	if (input != null) {
+	    Object anleitung = input.get(ANLEITUNG_KEY_NAME);
+	    if (anleitung != null) {
+		rezept.setAnleitung(anleitung.toString());
+	    }
+
+	    Object titel = input.get(TITEL_KEY_NAME);
+	    if (titel != null) {
+		rezept.setTitel(titel.toString());
+	    }
+
+	    Object id = input.get(ID_KEY_NAME);
+	    if (id != null) {
+		rezept.setId(Integer.parseInt(id.toString()));
+	    }
+
+	    Object mahlzeit = input.get(MAHLZEIT_KEY_NAME);
+	    if (mahlzeit != null) {
+		rezept.setMahlzeit(mahlzeit.toString());
+	    }
+
+	    Object schweregrad = input.get(SCHWEREGRAD_KEY_NAME);
+	    if (schweregrad != null) {
+		rezept.setSchweregrad(schweregrad.toString());
+	    }
+
+	    @SuppressWarnings("unchecked")
+	    List<Map<String, Object>> inputZutaten = (List<Map<String, Object>>) input.get(ZUTATEN_KEY_NAME);
+	    if (inputZutaten != null) {
+		ArrayList<Zutat> zutaten = new ArrayList<Zutat>();
+		for (Map<String, Object> iZutat : inputZutaten) {
+		    zutaten.add(Zutat.mappeFromMap(iZutat));
+		}
+		rezept.setZutaten(zutaten);
+	    }
 	}
-	rezept.setZutaten(zutaten);
 	return rezept;
     }
 
     public List<Zutat> getEinkaufsliste(int anzahlPortionen) {
 	List<Zutat> einkaufsListe = zutaten;
-	einkaufsListe.forEach(z -> z.setAnzahl(z.getAnzahl() * anzahlPortionen));
+	if (zutaten != null && anzahlPortionen > 0) {
+	    einkaufsListe.forEach(z -> z.setAnzahl(z.getAnzahl() * anzahlPortionen));
+	}
 	return einkaufsListe;
     }
 }
