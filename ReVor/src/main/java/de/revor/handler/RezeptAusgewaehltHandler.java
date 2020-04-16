@@ -44,8 +44,8 @@ public class RezeptAusgewaehltHandler implements RequestHandler {
     @Override
     public Optional<Response> handle(HandlerInput input) {
 	logger.debug("Es wurde ein Rezept ausgewählt");
-	sessionAttributeService.setHandlerInput(input);
-	einkaufslisteService.setHandlerInput(input);
+	sessionAttributeService.setSessionAttributes(input.getAttributesManager().getSessionAttributes());
+	einkaufslisteService.setListManagementServiceClient(input.getServiceClientFactory().getListManagementService());
 	String userEmail = getUserEmail(input);
 	String speechText = "";
 	boolean shouldEndSession = false;

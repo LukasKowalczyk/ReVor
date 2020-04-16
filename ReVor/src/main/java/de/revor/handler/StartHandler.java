@@ -22,6 +22,7 @@ import de.revor.RezeptVorschlag;
 import de.revor.datatype.Mahlzeit;
 import de.revor.datatype.Rezept;
 import de.revor.datatype.Schweregrad;
+import de.revor.service.HandlerInputUtil;
 import de.revor.service.RezeptSucheService;
 import de.revor.service.SessionAttributeService;
 import de.revor.service.SlotService;
@@ -44,8 +45,8 @@ public class StartHandler implements RequestHandler {
 
     public Optional<Response> handle(HandlerInput input) {
 	logger.debug("Suche starten");
-	sessionAttributeService.setHandlerInput(input);
-	slotService.setHandlerInput(input);
+	sessionAttributeService.setSessionAttributes(HandlerInputUtil.getSessionAttributes(input));
+	slotService.setSlots(HandlerInputUtil.getSlots(input));
 	String speechText = "";
 
 	Mahlzeit mahlzeit = Mahlzeit.JETZT;

@@ -35,7 +35,7 @@ public class NaechstesRezeptHandler implements RequestHandler {
     @Override
     public Optional<Response> handle(HandlerInput input) {
 	logger.debug("Nächstes Rezept vorschlagen");
-	sessionAttributeService.setHandlerInput(input);
+	sessionAttributeService.setSessionAttributes(input.getAttributesManager().getSessionAttributes());
 	String speechText = "";
 	boolean shouldEndSession = false;
 	List<Rezept> rezepte = mappRezepteAusSessionAttribut();
