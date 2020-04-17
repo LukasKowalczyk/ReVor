@@ -23,12 +23,9 @@ public class EinkaufslisteService {
 
     private static EinkaufslisteService einkaufslisteService;
 
-    private String listId;
-
     private ListManagementServiceClient listManagementServiceClient;
 
     private EinkaufslisteService() {
-	listId = null;
 	listManagementServiceClient = null;
     }
 
@@ -45,7 +42,7 @@ public class EinkaufslisteService {
 	if (listManagementServiceClient == null) {
 	    return;
 	}
-	listId = getShoppingListId(listManagementServiceClient);
+	String listId = getShoppingListId(listManagementServiceClient);
 	if (zutaten == null) {
 	    return;
 	}

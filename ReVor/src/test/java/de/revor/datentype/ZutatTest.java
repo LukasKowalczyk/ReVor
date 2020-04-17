@@ -23,7 +23,15 @@ class ZutatTest {
 	Zutat zutat = Zutat.mappeFromMap(nullFelder());
 	assertNotNull(zutat);
     }
-
+    
+    @Test
+    void toStringTest() {
+	assertNotNull(new Zutat().toString());
+    }
+    @Test
+    void getEinkaufsItemValue() {
+	assertNotNull(new Zutat().getEinkaufsItemValue());
+    }
     @Test
     void mappeFromMap_Anzahl() {
 	Zutat zutat = Zutat.mappeFromMap(nullFelder());

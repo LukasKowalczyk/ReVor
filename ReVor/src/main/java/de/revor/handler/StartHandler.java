@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import com.amazon.ask.dispatcher.request.handler.HandlerInput;
 import com.amazon.ask.dispatcher.request.handler.RequestHandler;
 import com.amazon.ask.model.Response;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 
 import de.revor.RezeptVorschlag;
 import de.revor.datatype.Mahlzeit;
@@ -47,6 +48,7 @@ public class StartHandler implements RequestHandler {
 	logger.debug("Suche starten");
 	sessionAttributeService.setSessionAttributes(HandlerInputUtil.getSessionAttributes(input));
 	slotService.setSlots(HandlerInputUtil.getSlots(input));
+	rezeptSuche.setAmazonDynamoDB(AmazonDynamoDBClientBuilder.standard().build());
 	String speechText = "";
 
 	Mahlzeit mahlzeit = Mahlzeit.JETZT;

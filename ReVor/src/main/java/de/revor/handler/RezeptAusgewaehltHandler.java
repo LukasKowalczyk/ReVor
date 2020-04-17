@@ -60,7 +60,12 @@ public class RezeptAusgewaehltHandler implements RequestHandler {
 	    sessionAttributeService.putSessionAttribut(GEFUNDENE_REZEPTE_INDEX, null);
 	    List<Zutat> zutaten = rezept.getEinkaufsliste(anzahlportionen);
 	    einkaufslisteService.fuegeZurEinkaufslisteHinzu(zutaten);
-	    eMailSendenService.versendeRezeptUndEinkaufsliste(rezept, zutaten, userEmail);
+	    try {
+		eMailSendenService.versendeRezeptUndEinkaufsliste(rezept, zutaten, userEmail);
+	    } catch (Exception e) {
+		logger.error("Die Email konnte nicht gesendet werden!", e);
+		speechText = "leider konnte ich dir keine Email senden. bitte überprüfe deine einstellungen in der alexa-app.";
+	    }
 	    shouldEndSession = true;
 	}
 	return input.getResponseBuilder().withSpeech(speechText).withReprompt(speechText)

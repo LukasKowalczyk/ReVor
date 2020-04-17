@@ -3,6 +3,7 @@ package de.revor.service;
 import static org.junit.Assert.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -16,7 +17,6 @@ import com.amazon.ask.model.services.listManagement.AlexaListItem;
 import com.amazon.ask.model.services.listManagement.AlexaListMetadata;
 import com.amazon.ask.model.services.listManagement.AlexaListsMetadata;
 import com.amazon.ask.model.services.listManagement.ListManagementServiceClient;
-import com.amazon.ask.model.services.listManagement.ListState;
 
 import de.revor.datatype.Zutat;
 
@@ -25,33 +25,37 @@ class EinkaufslisteServiceTest {
     @Test
     void fuegeZurEinkaufslisteHinzu() {
 	EinkaufslisteService implementation = EinkaufslisteService.getImplementation();
-	ListManagementServiceClient listManagementServiceClient = mock(ListManagementServiceClient.class);
+
 	boolean erfolg = true;
 	try {
-	    mockShoppingIDGefuellt(listManagementServiceClient);
-	    mockGetListGefuellt(listManagementServiceClient);
-	    implementation.setListManagementServiceClient(listManagementServiceClient);
+	    implementation.setListManagementServiceClient(null);
 	    implementation.fuegeZurEinkaufslisteHinzu(null);
 	    implementation.fuegeZurEinkaufslisteHinzu(new ArrayList<>());
 	    implementation.fuegeZurEinkaufslisteHinzu(generateNewZutaten());
 	    implementation.fuegeZurEinkaufslisteHinzu(generateUpdateZutaten());
 
-	    mockShoppingIDNull(listManagementServiceClient);
-	    mockGetListGefuellt(listManagementServiceClient);
+	    ListManagementServiceClient listManagementServiceClientFilled = mockGetListGefuellt();
+	    implementation.setListManagementServiceClient(listManagementServiceClientFilled);
 	    implementation.fuegeZurEinkaufslisteHinzu(null);
 	    implementation.fuegeZurEinkaufslisteHinzu(new ArrayList<>());
 	    implementation.fuegeZurEinkaufslisteHinzu(generateNewZutaten());
 	    implementation.fuegeZurEinkaufslisteHinzu(generateUpdateZutaten());
 
-	    mockGetListLeer(listManagementServiceClient);
-	    mockGetListGefuellt(listManagementServiceClient);
+	    ListManagementServiceClient listManagementServiceClientIDNull = mockGetListGefuelltIDNull();
+	    implementation.setListManagementServiceClient(listManagementServiceClientIDNull);
 	    implementation.fuegeZurEinkaufslisteHinzu(null);
 	    implementation.fuegeZurEinkaufslisteHinzu(new ArrayList<>());
 	    implementation.fuegeZurEinkaufslisteHinzu(generateNewZutaten());
 	    implementation.fuegeZurEinkaufslisteHinzu(generateUpdateZutaten());
-	    
+
+	    ListManagementServiceClient listManagementServiceClientLeer = mockGetListLeer();
+	    implementation.setListManagementServiceClient(listManagementServiceClientLeer);
+	    implementation.fuegeZurEinkaufslisteHinzu(null);
+	    implementation.fuegeZurEinkaufslisteHinzu(new ArrayList<>());
+	    implementation.fuegeZurEinkaufslisteHinzu(generateNewZutaten());
+	    implementation.fuegeZurEinkaufslisteHinzu(generateUpdateZutaten());
+
 	} catch (Exception e) {
-	    e.printStackTrace();
 	    erfolg = false;
 	}
 
@@ -67,6 +71,7 @@ class EinkaufslisteServiceTest {
 	arrayList.add(zutat);
 	return arrayList;
     }
+
     private ArrayList<Zutat> generateUpdateZutaten() {
 	ArrayList<Zutat> arrayList = new ArrayList<Zutat>();
 	Zutat zutat = new Zutat();
@@ -76,56 +81,92 @@ class EinkaufslisteServiceTest {
 	arrayList.add(zutat);
 	return arrayList;
     }
+
     @Test
     void shoppingID() {
 	boolean erfolg = true;
 	try {
-	    ListManagementServiceClient listManagementServiceClient = mock(ListManagementServiceClient.class);
-	    mockShoppingIDGefuellt(listManagementServiceClient);
+	    ListManagementServiceClient listManagementServiceClient = mockShoppingIDGefuellt();
 	    EinkaufslisteService implementation = EinkaufslisteService.getImplementation();
 	    implementation.setListManagementServiceClient(listManagementServiceClient);
 	    implementation.fuegeZurEinkaufslisteHinzu(null);
 	    implementation.fuegeZurEinkaufslisteHinzu(new ArrayList<>());
 
-	    mockShoppingIDNull(listManagementServiceClient);
-	    implementation.setListManagementServiceClient(listManagementServiceClient);
+	    ListManagementServiceClient listManagementServiceClientNull = mockShoppingIDNull();
+	    implementation.setListManagementServiceClient(listManagementServiceClientNull);
 	    implementation.fuegeZurEinkaufslisteHinzu(null);
 	    implementation.fuegeZurEinkaufslisteHinzu(new ArrayList<>());
 
-	    mockShoppingIDLeer(listManagementServiceClient);
-	    implementation.setListManagementServiceClient(listManagementServiceClient);
+	    ListManagementServiceClient listManagementServiceClientLeer = mockShoppingIDLeer();
+	    implementation.setListManagementServiceClient(listManagementServiceClientLeer);
 	    implementation.fuegeZurEinkaufslisteHinzu(null);
 	    implementation.fuegeZurEinkaufslisteHinzu(new ArrayList<>());
 	} catch (Exception e) {
-	    e.printStackTrace();
 	    erfolg = false;
 	}
 	assertTrue(erfolg);
     }
 
-    private void mockShoppingIDGefuellt(ListManagementServiceClient listManagementServiceClient) {
+    private ListManagementServiceClient mockGetListGefuellt() {
+	ListManagementServiceClient listManagementServiceClient = mock(ListManagementServiceClient.class);
 	when(listManagementServiceClient.getListsMetadata()).thenReturn(AlexaListsMetadata.builder()
 		.addListsItem(AlexaListMetadata.builder().withName("Alexa shopping list").withListId("123").build())
 		.build());
-    }
-
-    private void mockGetListGefuellt(ListManagementServiceClient listManagementServiceClient) {
 	List<AlexaListItem> items = new ArrayList<AlexaListItem>();
 	items.add(AlexaListItem.builder().withValue("test 100 g").build());
-	when(listManagementServiceClient.getList("123", ListState.ACTIVE.getValue().toString())).thenReturn(AlexaList.builder().withItems(items).build());
+	when(listManagementServiceClient.getList(anyString(), anyString()))
+		.thenReturn(AlexaList.builder().withItems(items).build());
+	return listManagementServiceClient;
     }
 
-    private void mockGetListLeer(ListManagementServiceClient listManagementServiceClient) {
-	List<AlexaListItem> items = new ArrayList<AlexaListItem>();
-	when(listManagementServiceClient.getList("123", ListState.ACTIVE.getValue().toString())).thenReturn(AlexaList.builder().withItems(items).build());
-    }
-
-    private void mockShoppingIDNull(ListManagementServiceClient listManagementServiceClient) {
+    private ListManagementServiceClient mockGetListGefuelltIDNull() {
+	ListManagementServiceClient listManagementServiceClient = mock(ListManagementServiceClient.class);
+	when(listManagementServiceClient.getListsMetadata()).thenReturn(AlexaListsMetadata.builder()
+		.addListsItem(AlexaListMetadata.builder().withName("Alexa shopping list").withListId("123").build())
+		.build());
 	when(listManagementServiceClient.getListsMetadata()).thenReturn(null);
+	List<AlexaListItem> items = new ArrayList<AlexaListItem>();
+	items.add(AlexaListItem.builder().withValue("test 100 g").build());
+	when(listManagementServiceClient.getList(anyString(), anyString()))
+		.thenReturn(AlexaList.builder().withItems(items).build());
+	return listManagementServiceClient;
     }
 
-    private void mockShoppingIDLeer(ListManagementServiceClient listManagementServiceClient) {
+    private ListManagementServiceClient mockGetListLeer() {
+	ListManagementServiceClient listManagementServiceClient = mock(ListManagementServiceClient.class);
+	when(listManagementServiceClient.getListsMetadata()).thenReturn(AlexaListsMetadata.builder()
+		.addListsItem(AlexaListMetadata.builder().withName("Alexa shopping list").withListId("123").build())
+		.build());
+	List<AlexaListItem> items = new ArrayList<AlexaListItem>();
+	when(listManagementServiceClient.getList(anyString(), anyString()))
+		.thenReturn(AlexaList.builder().withItems(items).build());
+	return listManagementServiceClient;
+    }
+
+    private ListManagementServiceClient mockShoppingIDNull() {
+	ListManagementServiceClient listManagementServiceClient = mock(ListManagementServiceClient.class);
+	when(listManagementServiceClient.getListsMetadata()).thenReturn(AlexaListsMetadata.builder()
+		.addListsItem(AlexaListMetadata.builder().withName("Alexa shopping list").withListId("123").build())
+		.build());
+	when(listManagementServiceClient.getListsMetadata()).thenReturn(null);
+	return listManagementServiceClient;
+    }
+
+    private ListManagementServiceClient mockShoppingIDGefuellt() {
+	ListManagementServiceClient listManagementServiceClient = mock(ListManagementServiceClient.class);
+	when(listManagementServiceClient.getListsMetadata()).thenReturn(AlexaListsMetadata.builder()
+		.addListsItem(AlexaListMetadata.builder().withName("Alexa shopping list").withListId("123").build())
+		.build());
+	return listManagementServiceClient;
+    }
+
+    private ListManagementServiceClient mockShoppingIDLeer() {
+	ListManagementServiceClient listManagementServiceClient = mock(ListManagementServiceClient.class);
+	when(listManagementServiceClient.getListsMetadata()).thenReturn(AlexaListsMetadata.builder()
+		.addListsItem(AlexaListMetadata.builder().withName("Alexa shopping list").withListId("123").build())
+		.build());
 	when(listManagementServiceClient.getListsMetadata()).thenReturn(AlexaListsMetadata.builder().build());
+	return listManagementServiceClient;
     }
 
     @Test

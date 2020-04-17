@@ -13,28 +13,41 @@ import com.amazonaws.services.simpleemail.model.Content;
 import com.amazonaws.services.simpleemail.model.Destination;
 import com.amazonaws.services.simpleemail.model.Message;
 import com.amazonaws.services.simpleemail.model.SendEmailRequest;
+import com.amazonaws.services.simpleemail.model.SendEmailResult;
+import com.amazonaws.util.StringUtils;
 
 import de.revor.datatype.Rezept;
 import de.revor.datatype.Zutat;
 
 public class EMailSendenService {
     private static final String FROM_EMAIL = "FROM_EMAIL";
-    
+
     private static EMailSendenService eMailSendenService;
-    
+
     private static final Logger logger = LoggerFactory.getLogger(EMailSendenService.class);
-    
-    private AmazonSimpleEmailService client;
+
+    private AmazonSimpleEmailService amazonSimpleEmailService;
 
     private EMailSendenService() {
-	client = AmazonSimpleEmailServiceClientBuilder.standard().withRegion(Regions.EU_WEST_1).build();
+	amazonSimpleEmailService = AmazonSimpleEmailServiceClientBuilder.standard().withRegion(Regions.EU_WEST_1)
+		.build();
     }
 
     public static EMailSendenService getImpementation() {
 	return eMailSendenService == null ? new EMailSendenService() : eMailSendenService;
     }
 
-    public void versendeRezeptUndEinkaufsliste(Rezept rezept, List<Zutat> zutatenliste, String userEmail) {
+    public void versendeRezeptUndEinkaufsliste(Rezept rezept, List<Zutat> zutatenliste, String userEmail) throws Exception {
+	if (rezept == null || StringUtils.isNullOrEmpty(rezept.getAnleitung())
+		&& StringUtils.isNullOrEmpty(rezept.getTitel())) {
+	    throw new IllegalArgumentException("rezept is null");
+	}
+	if (zutatenliste == null || zutatenliste.size() <= 0) {
+	    throw new IllegalArgumentException("zutatenliste is null");
+	}
+	if (StringUtils.isNullOrEmpty(userEmail)) {
+	    throw new IllegalArgumentException("userEmail is null");
+	}
 	logger.debug("Sende Email");
 	logger.debug("To=" + userEmail);
 	logger.debug("Anleitung:");
@@ -46,7 +59,12 @@ public class EMailSendenService {
 		.withDestination(new Destination().withToAddresses(userEmail)).withMessage(new Message()
 			.withBody(generateBody(rezept, einkaufslisteBody)).withSubject(generateSubject(rezept)))
 		.withSource(System.getenv(FROM_EMAIL));
-	client.sendEmail(request);
+	SendEmailResult sendEmailResult = amazonSimpleEmailService.sendEmail(request);
+	int httpStatusCode = sendEmailResult.getSdkHttpMetadata().getHttpStatusCode();
+	logger.debug("RC EMailSenden = " + httpStatusCode);
+	if(httpStatusCode>=300) {
+	    throw new Exception("Email coulden't be send properly HTTP-Status-Code >"+300+"<");
+	}
     }
 
     private Content generateSubject(Rezept rezept) {

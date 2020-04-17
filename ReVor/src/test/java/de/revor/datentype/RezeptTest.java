@@ -30,6 +30,12 @@ class RezeptTest {
     private static final String ID = "ID";
 
     @Test
+    void toStringTest() {
+	Rezept rezept = new Rezept();
+	assertNotNull(rezept.toString());
+    }
+    
+    @Test
     void getEinkaufsliste() {
 	Rezept rezept = new Rezept();
 	assertEquals(rezept.getZutaten(), rezept.getEinkaufsliste(1));
