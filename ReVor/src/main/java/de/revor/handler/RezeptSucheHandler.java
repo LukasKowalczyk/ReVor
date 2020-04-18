@@ -28,11 +28,11 @@ import de.revor.service.RezeptSucheService;
 import de.revor.service.SessionAttributeService;
 import de.revor.service.SlotService;
 
-public class StartHandler implements RequestHandler {
+public class RezeptSucheHandler implements RequestHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(StartHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(RezeptSucheHandler.class);
 
-    private static final String INSTANT_NAME = "START";
+    private static final String INSTANT_NAME = "REZEPT_SUCHE";
 
     private RezeptSucheService rezeptSuche = RezeptSucheService.getImplementation();
 
@@ -45,7 +45,7 @@ public class StartHandler implements RequestHandler {
     }
 
     public Optional<Response> handle(HandlerInput input) {
-	logger.debug("Suche starten");
+	logger.debug("Rezeptsuche starten");
 	sessionAttributeService.setSessionAttributes(HandlerInputUtil.getSessionAttributes(input));
 	slotService.setSlots(HandlerInputUtil.getSlots(input));
 	rezeptSuche.setAmazonDynamoDB(AmazonDynamoDBClientBuilder.standard().build());

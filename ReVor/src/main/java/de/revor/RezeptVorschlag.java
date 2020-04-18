@@ -10,7 +10,7 @@ import de.revor.handler.LaunchRequestHandler;
 import de.revor.handler.NaechstesRezeptHandler;
 import de.revor.handler.RezeptAusgewaehltHandler;
 import de.revor.handler.SessionEndedRequestHandler;
-import de.revor.handler.StartHandler;
+import de.revor.handler.RezeptSucheHandler;
 
 public class RezeptVorschlag extends SkillStreamHandler {
 
@@ -22,7 +22,7 @@ public class RezeptVorschlag extends SkillStreamHandler {
 	private static Skill getSkill() {
 		return Skills.standard()
 				.addRequestHandlers(new CancelandStopIntentHandler(), new RezeptAusgewaehltHandler(),
-						new NaechstesRezeptHandler(), new StartHandler(), new HelpIntentHandler(),
+						new NaechstesRezeptHandler(), new RezeptSucheHandler(), new HelpIntentHandler(),
 						new LaunchRequestHandler(), new SessionEndedRequestHandler())
 				.withSkillId(System.getenv(AMAZON_ID)).build();
 	}
