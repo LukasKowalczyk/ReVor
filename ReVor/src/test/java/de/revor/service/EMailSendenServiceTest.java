@@ -19,7 +19,7 @@ import com.amazonaws.services.simpleemail.model.SendEmailResult;
 import de.revor.datatype.Rezept;
 import de.revor.datatype.Zutat;
 
-class EMaulSendenServiceTest {
+class EMailSendenServiceTest {
 
     @Test
     void versendeRezeptUndEinkaufslisteRezeptGefuellt() {
