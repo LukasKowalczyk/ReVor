@@ -15,8 +15,6 @@ import java.time.ZoneId;
 import org.junit.jupiter.api.Test;
 
 import de.revor.datatype.Mahlzeit;
-import mockit.Mock;
-import mockit.MockUp;
 
 class MahlzeitTest {
 
@@ -100,48 +98,48 @@ class MahlzeitTest {
 
     @Test
     void ermittleAktuelleMahlzeit_Frueh() {
-	setzeStunde("03");
-	assertEquals(ABEND, Mahlzeit.ermittleAktuelleMahlzeit());
-	assertNotEquals(MITTAG, Mahlzeit.ermittleAktuelleMahlzeit());
-	assertNotEquals(FRUEH, Mahlzeit.ermittleAktuelleMahlzeit());
-	assertNotEquals(null, Mahlzeit.ermittleAktuelleMahlzeit());
+	LocalDateTime localDateTime = setzeStundeLocaldateTime("03");
+	assertEquals(ABEND, Mahlzeit.ermittleAktuelleMahlzeit(localDateTime));
+	assertNotEquals(MITTAG, Mahlzeit.ermittleAktuelleMahlzeit(localDateTime));
+	assertNotEquals(FRUEH, Mahlzeit.ermittleAktuelleMahlzeit(localDateTime));
+	assertNotEquals(null, Mahlzeit.ermittleAktuelleMahlzeit(localDateTime));
 	// Alles zwischen 4 und 11 Uhr muss FRUEH sein
 	for (int i = 4; i < 12; i++) {
 	    String stunde = (i < 10 ? "0" : "") + i;
-	    setzeStunde(stunde);
-	    assertEquals(FRUEH, Mahlzeit.ermittleAktuelleMahlzeit());
-	    assertNotEquals(MITTAG, Mahlzeit.ermittleAktuelleMahlzeit());
-	    assertNotEquals(ABEND, Mahlzeit.ermittleAktuelleMahlzeit());
-	    assertNotEquals(null, Mahlzeit.ermittleAktuelleMahlzeit());
+	    localDateTime = setzeStundeLocaldateTime(stunde);
+	    assertEquals(FRUEH, Mahlzeit.ermittleAktuelleMahlzeit(localDateTime));
+	    assertNotEquals(MITTAG, Mahlzeit.ermittleAktuelleMahlzeit(localDateTime));
+	    assertNotEquals(ABEND, Mahlzeit.ermittleAktuelleMahlzeit(localDateTime));
+	    assertNotEquals(null, Mahlzeit.ermittleAktuelleMahlzeit(localDateTime));
 	}
-	setzeStunde("12");
-	assertNotEquals(FRUEH, Mahlzeit.ermittleAktuelleMahlzeit());
-	assertEquals(MITTAG, Mahlzeit.ermittleAktuelleMahlzeit());
-	assertNotEquals(ABEND, Mahlzeit.ermittleAktuelleMahlzeit());
-	assertNotEquals(null, Mahlzeit.ermittleAktuelleMahlzeit());
+	localDateTime = setzeStundeLocaldateTime("12");
+	assertNotEquals(FRUEH, Mahlzeit.ermittleAktuelleMahlzeit(localDateTime));
+	assertEquals(MITTAG, Mahlzeit.ermittleAktuelleMahlzeit(localDateTime));
+	assertNotEquals(ABEND, Mahlzeit.ermittleAktuelleMahlzeit(localDateTime));
+	assertNotEquals(null, Mahlzeit.ermittleAktuelleMahlzeit(localDateTime));
     }
 
     @Test
     void ermittleAktuelleMahlzeit_Mittag() {
-	setzeStunde("12");
-	assertEquals(MITTAG, Mahlzeit.ermittleAktuelleMahlzeit());
-	assertNotEquals(ABEND, Mahlzeit.ermittleAktuelleMahlzeit());
-	assertNotEquals(FRUEH, Mahlzeit.ermittleAktuelleMahlzeit());
-	assertNotEquals(null, Mahlzeit.ermittleAktuelleMahlzeit());
+	LocalDateTime localDateTime = setzeStundeLocaldateTime("12");
+	assertEquals(MITTAG, Mahlzeit.ermittleAktuelleMahlzeit(localDateTime));
+	assertNotEquals(ABEND, Mahlzeit.ermittleAktuelleMahlzeit(localDateTime));
+	assertNotEquals(FRUEH, Mahlzeit.ermittleAktuelleMahlzeit(localDateTime));
+	assertNotEquals(null, Mahlzeit.ermittleAktuelleMahlzeit(localDateTime));
 	// Alles zwischen 12 und 15 Uhr muss MITTAG sein
 	for (int i = 12; i < 16; i++) {
 	    String stunde = (i < 10 ? "0" : "") + i;
-	    setzeStunde(stunde);
-	    assertEquals(MITTAG, Mahlzeit.ermittleAktuelleMahlzeit());
-	    assertNotEquals(FRUEH, Mahlzeit.ermittleAktuelleMahlzeit());
-	    assertNotEquals(ABEND, Mahlzeit.ermittleAktuelleMahlzeit());
-	    assertNotEquals(null, Mahlzeit.ermittleAktuelleMahlzeit());
+	    localDateTime = setzeStundeLocaldateTime(stunde);
+	    assertEquals(MITTAG, Mahlzeit.ermittleAktuelleMahlzeit(localDateTime));
+	    assertNotEquals(FRUEH, Mahlzeit.ermittleAktuelleMahlzeit(localDateTime));
+	    assertNotEquals(ABEND, Mahlzeit.ermittleAktuelleMahlzeit(localDateTime));
+	    assertNotEquals(null, Mahlzeit.ermittleAktuelleMahlzeit(localDateTime));
 	}
-	setzeStunde("16");
-	assertEquals(ABEND, Mahlzeit.ermittleAktuelleMahlzeit());
-	assertNotEquals(FRUEH, Mahlzeit.ermittleAktuelleMahlzeit());
-	assertNotEquals(MITTAG, Mahlzeit.ermittleAktuelleMahlzeit());
-	assertNotEquals(null, Mahlzeit.ermittleAktuelleMahlzeit());
+	localDateTime = setzeStundeLocaldateTime("16");
+	assertEquals(ABEND, Mahlzeit.ermittleAktuelleMahlzeit(localDateTime));
+	assertNotEquals(FRUEH, Mahlzeit.ermittleAktuelleMahlzeit(localDateTime));
+	assertNotEquals(MITTAG, Mahlzeit.ermittleAktuelleMahlzeit(localDateTime));
+	assertNotEquals(null, Mahlzeit.ermittleAktuelleMahlzeit(localDateTime));
     }
 
     @Test
@@ -149,20 +147,20 @@ class MahlzeitTest {
 	// Alles zwischen 0 und 3 Uhr muss MITTAG sein
 	for (int i = 0; i < 4; i++) {
 	    String stunde = (i < 10 ? "0" : "") + i;
-	    setzeStunde(stunde);
-	    assertEquals(ABEND, Mahlzeit.ermittleAktuelleMahlzeit());
-	    assertNotEquals(FRUEH, Mahlzeit.ermittleAktuelleMahlzeit());
-	    assertNotEquals(MITTAG, Mahlzeit.ermittleAktuelleMahlzeit());
-	    assertNotEquals(null, Mahlzeit.ermittleAktuelleMahlzeit());
+	    LocalDateTime localDateTime = setzeStundeLocaldateTime(stunde);
+	    assertEquals(ABEND, Mahlzeit.ermittleAktuelleMahlzeit(localDateTime));
+	    assertNotEquals(FRUEH, Mahlzeit.ermittleAktuelleMahlzeit(localDateTime));
+	    assertNotEquals(MITTAG, Mahlzeit.ermittleAktuelleMahlzeit(localDateTime));
+	    assertNotEquals(null, Mahlzeit.ermittleAktuelleMahlzeit(localDateTime));
 	}
 	// Alles zwischen 16 und 25 Uhr muss MITTAG sein
 	for (int i = 16; i < 24; i++) {
 	    String stunde = (i < 10 ? "0" : "") + i;
-	    setzeStunde(stunde);
-	    assertEquals(ABEND, Mahlzeit.ermittleAktuelleMahlzeit());
-	    assertNotEquals(FRUEH, Mahlzeit.ermittleAktuelleMahlzeit());
-	    assertNotEquals(MITTAG, Mahlzeit.ermittleAktuelleMahlzeit());
-	    assertNotEquals(null, Mahlzeit.ermittleAktuelleMahlzeit());
+	    LocalDateTime localDateTime = setzeStundeLocaldateTime(stunde);
+	    assertEquals(ABEND, Mahlzeit.ermittleAktuelleMahlzeit(localDateTime));
+	    assertNotEquals(FRUEH, Mahlzeit.ermittleAktuelleMahlzeit(localDateTime));
+	    assertNotEquals(MITTAG, Mahlzeit.ermittleAktuelleMahlzeit(localDateTime));
+	    assertNotEquals(null, Mahlzeit.ermittleAktuelleMahlzeit(localDateTime));
 	}
     }
 
@@ -171,18 +169,13 @@ class MahlzeitTest {
 	// Alles zwischen 0 und 24 Uhr darf nicht null sein
 	for (int i = 0; i < 24; i++) {
 	    String stunde = (i < 10 ? "0" : "") + i;
-	    setzeStunde(stunde);
-	    assertNotEquals(null, Mahlzeit.ermittleAktuelleMahlzeit());
+	    LocalDateTime localDateTime = setzeStundeLocaldateTime(stunde);
+	    assertNotEquals(null, Mahlzeit.ermittleAktuelleMahlzeit(localDateTime));
 	}
     }
 
-    private void setzeStunde(String stunde) {
+    private LocalDateTime setzeStundeLocaldateTime(String stunde) {
 	Clock clock = Clock.fixed(Instant.parse("2014-12-21T" + stunde + ":15:30.00Z"), ZoneId.of("UTC"));
-	new MockUp<LocalDateTime>() {
-	    @Mock
-	    public LocalDateTime now() {
-		return LocalDateTime.now(clock);
-	    }
-	};
+	return LocalDateTime.now(clock);
     }
 }

@@ -3,6 +3,7 @@ package de.revor.service;
 import static de.revor.datatype.Mahlzeit.JETZT;
 import static de.revor.datatype.Schweregrad.EGAL;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,7 +54,7 @@ public class RezeptSucheService {
 	DynamoDBScanExpression scanExpression = null;
 	if (mahlzeit == JETZT) {
 	    logger.debug("Es wird die aktuelle Mahlzeit ermittelt!");
-	    mahlzeit = Mahlzeit.ermittleAktuelleMahlzeit();
+	    mahlzeit = Mahlzeit.ermittleAktuelleMahlzeit(LocalDateTime.now());
 	}
 	if (schweregrad == EGAL) {
 	    logger.debug("Es wird ohne Schweregradgesucht");

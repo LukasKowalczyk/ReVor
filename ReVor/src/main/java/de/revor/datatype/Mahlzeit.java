@@ -32,9 +32,9 @@ public enum Mahlzeit {
 	return wert;
     }
 
-    public static Mahlzeit ermittleAktuelleMahlzeit() {
+    public static Mahlzeit ermittleAktuelleMahlzeit(LocalDateTime localDateTime) {
 	DateTimeFormatter df = DateTimeFormatter.ofPattern("HH");
-	int tagesStunden = Integer.parseInt(LocalDateTime.now().format(df));
+	int tagesStunden = Integer.parseInt(localDateTime.format(df));
 	logger.debug("TAGES_STUNDE=" + tagesStunden);
 	if (0 <= tagesStunden && tagesStunden < 4) {
 	    return ABEND;
