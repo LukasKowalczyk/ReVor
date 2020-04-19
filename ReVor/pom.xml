@@ -6,6 +6,11 @@
 	<artifactId>ReVor</artifactId>
 	<version>0.0.1s</version>
 	<description>Alexa Skill der Rezeptvorschlaege macht</description>
+	<properties>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
+	</properties>
+
 	<dependencies>
 		<!-- https://mvnrepository.com/artifact/org.mockito/mockito-core -->
 		<dependency>
