@@ -1,4 +1,5 @@
 target/
+target/**/pom.properties
 *.class
 *.jar
 *.war
