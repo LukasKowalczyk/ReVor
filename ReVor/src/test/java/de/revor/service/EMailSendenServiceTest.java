@@ -1,7 +1,7 @@
 package de.revor.service;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.internal.util.reflection.Whitebox;
+import org.mockito.internal.util.reflection.FieldSetter;
 
 import com.amazonaws.http.SdkHttpMetadata;
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
@@ -104,7 +104,8 @@ class EMailSendenServiceTest {
 		when(sdkHttpMetadata.getHttpStatusCode()).thenReturn(rc);
 		when(sendEmailResult.getSdkHttpMetadata()).thenReturn(sdkHttpMetadata);
 		when(amazonSimpleEmailService.sendEmail(any(SendEmailRequest.class))).thenReturn(sendEmailResult);
-		Whitebox.setInternalState(eMailSendenService, "amazonSimpleEmailService", amazonSimpleEmailService);
+		FieldSetter.setField(eMailSendenService,
+			eMailSendenService.getClass().getDeclaredField("amazonSimpleEmailService"), amazonSimpleEmailService);
 		eMailSendenService.versendeRezeptUndEinkaufsliste(generateRezept(), generateZutaten(), "test@test.com");
 	    } catch (Exception e) {
 		erfolg = false;
@@ -123,7 +124,8 @@ class EMailSendenServiceTest {
 	    when(sdkHttpMetadata.getHttpStatusCode()).thenReturn(rc);
 	    when(sendEmailResult.getSdkHttpMetadata()).thenReturn(sdkHttpMetadata);
 	    when(amazonSimpleEmailService.sendEmail(any(SendEmailRequest.class))).thenReturn(sendEmailResult);
-	    Whitebox.setInternalState(eMailSendenService, "amazonSimpleEmailService", amazonSimpleEmailService);
+	    FieldSetter.setField(eMailSendenService,
+			eMailSendenService.getClass().getDeclaredField("amazonSimpleEmailService"), amazonSimpleEmailService);
 	    eMailSendenService.versendeRezeptUndEinkaufsliste(generateRezept(), generateZutaten(), "test@test.com");
 	} catch (Exception e) {
 	    exception = true;

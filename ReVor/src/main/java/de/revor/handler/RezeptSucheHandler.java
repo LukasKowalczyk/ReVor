@@ -16,14 +16,16 @@ import org.slf4j.LoggerFactory;
 
 import com.amazon.ask.dispatcher.request.handler.HandlerInput;
 import com.amazon.ask.dispatcher.request.handler.RequestHandler;
+import com.amazon.ask.model.IntentRequest;
 import com.amazon.ask.model.Response;
+import com.amazonaws.SdkClientException;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 
 import de.revor.RezeptVorschlag;
 import de.revor.datatype.Mahlzeit;
 import de.revor.datatype.Rezept;
 import de.revor.datatype.Schweregrad;
-import de.revor.service.HandlerInputUtil;
 import de.revor.service.RezeptSucheService;
 import de.revor.service.SessionAttributeService;
 import de.revor.service.SlotService;
@@ -46,9 +48,14 @@ public class RezeptSucheHandler implements RequestHandler {
 
     public Optional<Response> handle(HandlerInput input) {
 	logger.debug("Rezeptsuche starten");
-	sessionAttributeService.setSessionAttributes(HandlerInputUtil.getSessionAttributes(input));
-	slotService.setSlots(HandlerInputUtil.getSlots(input));
-	rezeptSuche.setAmazonDynamoDB(AmazonDynamoDBClientBuilder.standard().build());
+	sessionAttributeService.setSessionAttributes(input.getAttributesManager().getSessionAttributes());
+	IntentRequest intentRequest = (IntentRequest) input.getRequestEnvelope().getRequest();
+	slotService.setSlots(intentRequest.getIntent().getSlots());
+	try {
+	    rezeptSuche.setAmazonDynamoDB(AmazonDynamoDBClientBuilder.standard().build());
+	} catch (SdkClientException e) {
+	    rezeptSuche.setAmazonDynamoDB(AmazonDynamoDBClientBuilder.standard().withRegion(Regions.EU_WEST_2).build());
+	}
 	String speechText = "";
 
 	Mahlzeit mahlzeit = Mahlzeit.JETZT;
@@ -76,12 +83,11 @@ public class RezeptSucheHandler implements RequestHandler {
 	    // Erfrage Anzahl Portionen
 	    speechText += " keine anzahl portionen.";
 	}
+	speechText = "Ich habe leider nichts gefunden mit deinen Angaben: " + speechText;
 	if (sessionAttributeService.isSessionAttributEmpty(GEFUNDENE_REZEPTE)) {
 	    List<Rezept> rezepte = rezeptSuche.findeRezepte(mahlzeit, schweregrad);
 	    if (rezepte.size() > 0) {
 		speechText = "Willst du vielleicht " + rezepte.get(0).getTitel() + " kochen?";
-	    } else {
-		speechText = "Ich habe leider nichts gefunden mit deinen Angaben: " + speechText;
 	    }
 	    sessionAttributeService.putSessionAttribut(GEFUNDENE_REZEPTE, rezepte);
 	    sessionAttributeService.putSessionAttribut(GEFUNDENE_REZEPTE_INDEX, 0);

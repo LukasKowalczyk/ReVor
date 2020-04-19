@@ -1,4 +1,5 @@
 package de.revor.handler;
+
 import static com.amazon.ask.request.Predicates.intentName;
 import static de.revor.datatype.SkillSessionAttributeNames.GEFUNDENE_REZEPTE;
 import static de.revor.datatype.SkillSessionAttributeNames.GEFUNDENE_REZEPTE_INDEX;
@@ -20,11 +21,11 @@ import de.revor.datatype.Rezept;
 import de.revor.service.SessionAttributeService;
 
 public class NaechstesRezeptHandler implements RequestHandler {
-    
+
     private static final String AMAZON_NO_INTENT = "AMAZON.NoIntent";
-    
+
     private static final Logger logger = LoggerFactory.getLogger(NaechstesRezeptHandler.class);
-    
+
     private SessionAttributeService sessionAttributeService = SessionAttributeService.getImplementation();
 
     @Override
@@ -39,21 +40,24 @@ public class NaechstesRezeptHandler implements RequestHandler {
 	String speechText = "";
 	boolean shouldEndSession = false;
 	List<Rezept> rezepte = mappRezepteAusSessionAttribut();
+
 	Integer index = sessionAttributeService.<Integer>getSessionAttribut(GEFUNDENE_REZEPTE_INDEX);
-	index++;
-	if (rezepte != null) {
+	if (index != null) {
+	    index++;
+	    System.out.println(rezepte.size() +"<="+index);
 	    if (rezepte.size() <= index) {
-		// wir haben nichts mehr session soll beendet werden!
+		// wir haben nichts mehr, session soll beendet werden!
 		speechText = "Ich habe leider keine Rezepte mehr, versuch doch mal einen anderen schweregrad";
 		sessionAttributeService.putSessionAttribut(GEFUNDENE_REZEPTE, null);
 		index = null;
 		shouldEndSession = true;
 	    } else {
-		speechText = "willst du vielleicht " + rezepte.get(index).getTitel() + " kochen?";
+		speechText = "Willst du vielleicht " + rezepte.get(index).getTitel() + " kochen?";
 	    }
+	    sessionAttributeService.putSessionAttribut(GEFUNDENE_REZEPTE_INDEX, index);
+	} else {
+	    speechText = "Ich habe leider keine Rezepte!";
 	}
-	sessionAttributeService.putSessionAttribut(GEFUNDENE_REZEPTE_INDEX, index);
-
 	return input.getResponseBuilder().withSpeech(speechText).withReprompt(speechText)
 		.withSimpleCard(RezeptVorschlag.SKILL_TITEL, speechText).withShouldEndSession(shouldEndSession).build();
     }
@@ -62,7 +66,9 @@ public class NaechstesRezeptHandler implements RequestHandler {
 	ArrayList<Map<String, Object>> sessionAttributesRezepte = sessionAttributeService
 		.<ArrayList<Map<String, Object>>>getSessionAttribut(GEFUNDENE_REZEPTE);
 	ArrayList<Rezept> ausg = new ArrayList<>();
-	sessionAttributesRezepte.forEach((v) -> ausg.add(Rezept.mappeFromMap(v)));
+	if (sessionAttributesRezepte != null) {
+	    sessionAttributesRezepte.forEach((v) -> ausg.add(Rezept.mappeFromMap(v)));
+	}
 	return ausg;
     }
 

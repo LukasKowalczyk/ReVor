@@ -45,6 +45,7 @@ public class RezeptAusgewaehltHandler implements RequestHandler {
     public Optional<Response> handle(HandlerInput input) {
 	logger.debug("Es wurde ein Rezept ausgewählt");
 	sessionAttributeService.setSessionAttributes(input.getAttributesManager().getSessionAttributes());
+	System.out.println(einkaufslisteService);
 	einkaufslisteService.setListManagementServiceClient(input.getServiceClientFactory().getListManagementService());
 	String userEmail = getUserEmail(input);
 	String speechText = "";
@@ -52,22 +53,20 @@ public class RezeptAusgewaehltHandler implements RequestHandler {
 	List<Rezept> rezepte = mappRezepteAusSessionAttribut();
 	Integer index = sessionAttributeService.<Integer>getSessionAttribut(GEFUNDENE_REZEPTE_INDEX);
 	Integer anzahlportionen = sessionAttributeService.<Integer>getSessionAttribut(ANZAHL_PORTIONEN);
-	if (rezepte != null) {
-	    Rezept rezept = rezepte.get(index);
-	    speechText = "Du hast " + rezept.getTitel()
-		    + " ausgewählt, ich werde die Zutaten auf deine Einkaufsliste speichern und dir das Rezept als email senden. Aufwiedersehen und bis bald";
-	    sessionAttributeService.putSessionAttribut(GEFUNDENE_REZEPTE, null);
-	    sessionAttributeService.putSessionAttribut(GEFUNDENE_REZEPTE_INDEX, null);
-	    List<Zutat> zutaten = rezept.getEinkaufsliste(anzahlportionen);
-	    einkaufslisteService.fuegeZurEinkaufslisteHinzu(zutaten);
-	    try {
-		eMailSendenService.versendeRezeptUndEinkaufsliste(rezept, zutaten, userEmail);
-	    } catch (Exception e) {
-		logger.error("Die Email konnte nicht gesendet werden!", e);
-		speechText = "leider konnte ich dir keine Email senden. bitte überprüfe deine einstellungen in der alexa-app.";
-	    }
-	    shouldEndSession = true;
+	Rezept rezept = rezepte.get(index);
+	speechText = "Du hast " + rezept.getTitel()
+		+ " ausgewählt, ich werde die Zutaten auf deine Einkaufsliste speichern und dir das Rezept als email senden. Aufwiedersehen und bis bald";
+	sessionAttributeService.putSessionAttribut(GEFUNDENE_REZEPTE, null);
+	sessionAttributeService.putSessionAttribut(GEFUNDENE_REZEPTE_INDEX, null);
+	List<Zutat> zutaten = rezept.getEinkaufsliste(anzahlportionen);
+	einkaufslisteService.fuegeZurEinkaufslisteHinzu(zutaten);
+	try {
+	    eMailSendenService.versendeRezeptUndEinkaufsliste(rezept, zutaten, userEmail);
+	} catch (Exception e) {
+	    logger.error("Die Email konnte nicht gesendet werden!", e);
+	    speechText = "leider konnte ich dir keine Email senden. bitte überprüfe deine einstellungen in der alexa-app.";
 	}
+	shouldEndSession = true;
 	return input.getResponseBuilder().withSpeech(speechText).withReprompt(speechText)
 		.withSimpleCard(RezeptVorschlag.SKILL_TITEL, speechText).withShouldEndSession(shouldEndSession).build();
     }
