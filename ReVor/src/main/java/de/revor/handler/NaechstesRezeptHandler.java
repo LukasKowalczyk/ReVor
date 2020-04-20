@@ -44,7 +44,6 @@ public class NaechstesRezeptHandler implements RequestHandler {
 	Integer index = sessionAttributeService.<Integer>getSessionAttribut(GEFUNDENE_REZEPTE_INDEX);
 	if (index != null) {
 	    index++;
-	    System.out.println(rezepte.size() +"<="+index);
 	    if (rezepte.size() <= index) {
 		// wir haben nichts mehr, session soll beendet werden!
 		speechText = "Ich habe leider keine Rezepte mehr, versuch doch mal einen anderen schweregrad";

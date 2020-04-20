@@ -19,8 +19,11 @@ import org.mockito.internal.util.reflection.FieldSetter;
 
 import com.amazon.ask.attributes.AttributesManager;
 import com.amazon.ask.dispatcher.request.handler.HandlerInput;
+import com.amazon.ask.model.IntentRequest;
+import com.amazon.ask.model.RequestEnvelope;
 import com.amazon.ask.model.Response;
 import com.amazon.ask.model.services.ServiceClientFactory;
+import com.amazon.ask.model.services.directive.DirectiveServiceClient;
 import com.amazon.ask.model.services.listManagement.ListManagementServiceClient;
 import com.amazon.ask.model.services.ups.UpsServiceClient;
 import com.amazon.ask.response.ResponseBuilder;
@@ -75,17 +78,23 @@ class RezeptAusgewaehltHandlerTest {
 	AttributesManager attributesManager = mock(AttributesManager.class);
 	EinkaufslisteService einkaufslisteService = mock(EinkaufslisteService.class);
 	EMailSendenService eMailSendenService = mock(EMailSendenService.class);
-	ServiceClientFactory ServiceClientFactory = mock(ServiceClientFactory.class);
+	ServiceClientFactory serviceClientFactory = mock(ServiceClientFactory.class);
 	UpsServiceClient upsServiceClient = mock(UpsServiceClient.class);
-
+	IntentRequest intentRequest = mock(IntentRequest.class);
+	RequestEnvelope requestEnvelope = mock(RequestEnvelope.class);
+	
 	when(handlerInput.getResponseBuilder()).thenReturn(new ResponseBuilder());
 	when(handlerInput.getAttributesManager()).thenReturn(attributesManager);
-
-	when(ServiceClientFactory.getUpsService()).thenReturn(upsServiceClient);
-	when(ServiceClientFactory.getListManagementService()).thenReturn(mock(ListManagementServiceClient.class));
-	when(handlerInput.getServiceClientFactory()).thenReturn(ServiceClientFactory);
-
+	when(handlerInput.getRequestEnvelope()).thenReturn(requestEnvelope);
+	when(requestEnvelope.getRequest()).thenReturn(intentRequest);
+	when(serviceClientFactory.getUpsService()).thenReturn(upsServiceClient);
+	when(serviceClientFactory.getListManagementService()).thenReturn(mock(ListManagementServiceClient.class));
+	when(handlerInput.getServiceClientFactory()).thenReturn(serviceClientFactory);
+	when(intentRequest.getRequestId()).thenReturn("1234");
 	when(attributesManager.getSessionAttributes()).thenReturn(null);
+	DirectiveServiceClient directiveServiceClient = mock(DirectiveServiceClient.class);
+	when(serviceClientFactory.getDirectiveService()).thenReturn(directiveServiceClient);
+
 	when(upsServiceClient.getProfileEmail()).thenReturn("");
 	when(sessionAttributeService
 		.<Integer>getSessionAttribut(eq(SkillSessionAttributeNames.GEFUNDENE_REZEPTE_INDEX)))
@@ -106,7 +115,7 @@ class RezeptAusgewaehltHandlerTest {
 	//Whitebox.setInternalState(rezeptAusgewaehltHandler, "eMailSendenService", eMailSendenService);
 	Optional<Response> response = rezeptAusgewaehltHandler.handle(handlerInput);
 	assertTrue(response.isPresent());
-	assertTrue(response.get().getOutputSpeech().toString().indexOf("Du hast") > -1);
+	assertTrue(response.get().getOutputSpeech().toString().indexOf("Die email ist versendet und deine einkaufsliste") > -1);
 
 	doThrow(new Exception()).when(eMailSendenService).versendeRezeptUndEinkaufsliste(any(), any(), any());
 	response = rezeptAusgewaehltHandler.handle(handlerInput);

@@ -45,6 +45,7 @@ public class RezeptSucheHandler implements RequestHandler {
     private SessionAttributeService sessionAttributeService = SessionAttributeService.getImplementation();
 
     private SlotService slotService = SlotService.getImplementation();
+    private String speechText = "";
 
     public boolean canHandle(HandlerInput input) {
 	return input.matches(intentName(INSTANT_NAME));
@@ -52,47 +53,29 @@ public class RezeptSucheHandler implements RequestHandler {
 
     public Optional<Response> handle(HandlerInput input) {
 	logger.debug("Rezeptsuche starten");
-	sendProgressiveResponse(input);
+	speechText = "";
+	sendProgressiveResponse(input, "Ich suche nach Rezepten");
 	sessionAttributeService.setSessionAttributes(input.getAttributesManager().getSessionAttributes());
 	IntentRequest intentRequest = (IntentRequest) input.getRequestEnvelope().getRequest();
 	slotService.setSlots(intentRequest.getIntent().getSlots());
 	try {
 	    rezeptSuche.setAmazonDynamoDB(AmazonDynamoDBClientBuilder.standard().build());
 	} catch (SdkClientException e) {
+	    logger.error("DB-Fehler", e);
 	    rezeptSuche.setAmazonDynamoDB(AmazonDynamoDBClientBuilder.standard().withRegion(Regions.EU_WEST_2).build());
 	}
-	String speechText = "";
 
-	Mahlzeit mahlzeit = Mahlzeit.JETZT;
-	if (!slotService.isSlotEmpty(MAHLZEIT)) {
-	    mahlzeit = Mahlzeit.getMahlzeitOfWert(slotService.getMappedName(MAHLZEIT));
-	    speechText += " die tageszeit " + mahlzeit.getWert() + ".";
-	} else {
-	    // Erfrage Tageszeit
-	    speechText += " keine tageszeit.";
-	}
+	Mahlzeit mahlzeit = ermittleMahlzeit();
 
-	Schweregrad schweregrad = Schweregrad.EGAL;
-	if (!slotService.isSlotEmpty(SCHWEREGRAD)) {
-	    schweregrad = Schweregrad.getSchweregradOfWert(slotService.getMappedName(SCHWEREGRAD));
-	    speechText += " der Schweregrad " + schweregrad.getWert() + ".";
-	} else {
-	    // Erfrage Schweregrad
-	    speechText += " kein schweregrad.";
-	}
-	int anzahlportionen = 1;
-	if (!slotService.isSlotEmpty(ANZAHLPORTIONEN)) {
-	    anzahlportionen = slotService.getInteger(ANZAHLPORTIONEN);
-	    speechText += " die anzahl portionen " + anzahlportionen + ".";
-	} else {
-	    // Erfrage Anzahl Portionen
-	    speechText += " keine anzahl portionen.";
-	}
+	Schweregrad schweregrad = ermittleSchweregrad();
+	
+	int anzahlportionen = errmittleAnzahlPortionen();
+	
 	speechText = "Ich habe leider nichts gefunden mit deinen Angaben: " + speechText;
 	if (sessionAttributeService.isSessionAttributEmpty(GEFUNDENE_REZEPTE)) {
 	    List<Rezept> rezepte = rezeptSuche.findeRezepte(mahlzeit, schweregrad);
 	    if (rezepte.size() > 0) {
-		speechText = "Willst du vielleicht " + rezepte.get(0).getTitel() + " kochen?";
+		speechText = "Ich habe " + rezepte.get(0).getTitel() + " gefunden, willst du das vielleicht kochen?";
 	    }
 	    sessionAttributeService.putSessionAttribut(GEFUNDENE_REZEPTE, rezepte);
 	    sessionAttributeService.putSessionAttribut(GEFUNDENE_REZEPTE_INDEX, 0);
@@ -102,11 +85,47 @@ public class RezeptSucheHandler implements RequestHandler {
 		.withSimpleCard(RezeptVorschlag.SKILL_TITEL, speechText).withShouldEndSession(false).build();
     }
 
-    private void sendProgressiveResponse(HandlerInput input) {
+    private int errmittleAnzahlPortionen() {
+	int anzahlportionen = 1;
+	if (!slotService.isSlotEmpty(ANZAHLPORTIONEN)) {
+	    anzahlportionen = slotService.getInteger(ANZAHLPORTIONEN);
+	    speechText += " die anzahl portionen " + anzahlportionen + ".";
+	} else {
+	    // Erfrage Anzahl Portionen
+	    speechText += " keine anzahl portionen.";
+	}
+	return anzahlportionen;
+    }
+
+    private Schweregrad ermittleSchweregrad() {
+	Schweregrad schweregrad = Schweregrad.EGAL;
+	if (!slotService.isSlotEmpty(SCHWEREGRAD)) {
+	    schweregrad = Schweregrad.getSchweregradOfWert(slotService.getMappedName(SCHWEREGRAD));
+	    speechText += " der Schweregrad " + schweregrad.getWert() + ".";
+	} else {
+	    // Erfrage Schweregrad
+	    speechText += " kein schweregrad.";
+	}
+	return schweregrad;
+    }
+
+    private Mahlzeit ermittleMahlzeit() {
+	Mahlzeit mahlzeit = Mahlzeit.JETZT;
+	if (!slotService.isSlotEmpty(MAHLZEIT)) {
+	    mahlzeit = Mahlzeit.getMahlzeitOfWert(slotService.getMappedName(MAHLZEIT));
+	    speechText += " die tageszeit " + mahlzeit.getWert() + ".";
+	} else {
+	    // Erfrage Tageszeit
+	    speechText += " keine tageszeit.";
+	}
+	return mahlzeit;
+    }
+
+    private void sendProgressiveResponse(HandlerInput input, String speechText) {
 	String requestId = input.getRequestEnvelope().getRequest().getRequestId();
 	DirectiveServiceClient directiveServiceClient = input.getServiceClientFactory().getDirectiveService();
 	SendDirectiveRequest sendDirectiveRequest = SendDirectiveRequest.builder()
-		.withDirective(SpeakDirective.builder().withSpeech("Ich suche mal nach Rezepten").build())
+		.withDirective(SpeakDirective.builder().withSpeech(speechText).build())
 		.withHeader(Header.builder().withRequestId(requestId).build()).build();
 	directiveServiceClient.enqueue(sendDirectiveRequest);
     }
