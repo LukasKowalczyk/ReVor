@@ -9,8 +9,8 @@ import de.revor.handler.HelpIntentHandler;
 import de.revor.handler.LaunchRequestHandler;
 import de.revor.handler.NaechstesRezeptHandler;
 import de.revor.handler.RezeptAusgewaehltHandler;
-import de.revor.handler.SessionEndedRequestHandler;
 import de.revor.handler.RezeptSucheHandler;
+import de.revor.handler.SessionEndedRequestHandler;
 
 public class RezeptVorschlag extends SkillStreamHandler {
 

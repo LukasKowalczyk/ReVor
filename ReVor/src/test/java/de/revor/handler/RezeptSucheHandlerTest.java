@@ -25,6 +25,8 @@ import com.amazon.ask.model.IntentRequest;
 import com.amazon.ask.model.RequestEnvelope;
 import com.amazon.ask.model.Response;
 import com.amazon.ask.model.Slot;
+import com.amazon.ask.model.services.ServiceClientFactory;
+import com.amazon.ask.model.services.directive.DirectiveServiceClient;
 import com.amazon.ask.response.ResponseBuilder;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
@@ -87,8 +89,13 @@ class RezeptSucheHandlerTest {
 	RequestEnvelope requestEnvelope = mock(RequestEnvelope.class);
 	when(handlerInput.getRequestEnvelope()).thenReturn(requestEnvelope);
 	when(requestEnvelope.getRequest()).thenReturn(intentRequest);
+	when(intentRequest.getRequestId()).thenReturn("1234");
 	when(intentRequest.getIntent()).thenReturn(intent);
 	when(intent.getSlots()).thenReturn(new HashMap<String, Slot>());
+	ServiceClientFactory serviceClientFactory = mock(ServiceClientFactory.class);
+	when(handlerInput.getServiceClientFactory()).thenReturn(serviceClientFactory);
+	DirectiveServiceClient directiveServiceClient = mock(DirectiveServiceClient.class);
+	when(serviceClientFactory.getDirectiveService()).thenReturn(directiveServiceClient);
 
 	when(sessionAttributeService.isSessionAttributEmpty(eq(SkillSessionAttributeNames.GEFUNDENE_REZEPTE)))
 		.thenReturn(true);

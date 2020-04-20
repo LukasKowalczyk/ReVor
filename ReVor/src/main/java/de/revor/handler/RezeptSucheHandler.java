@@ -18,6 +18,10 @@ import com.amazon.ask.dispatcher.request.handler.HandlerInput;
 import com.amazon.ask.dispatcher.request.handler.RequestHandler;
 import com.amazon.ask.model.IntentRequest;
 import com.amazon.ask.model.Response;
+import com.amazon.ask.model.services.directive.DirectiveServiceClient;
+import com.amazon.ask.model.services.directive.Header;
+import com.amazon.ask.model.services.directive.SendDirectiveRequest;
+import com.amazon.ask.model.services.directive.SpeakDirective;
 import com.amazonaws.SdkClientException;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
@@ -48,6 +52,7 @@ public class RezeptSucheHandler implements RequestHandler {
 
     public Optional<Response> handle(HandlerInput input) {
 	logger.debug("Rezeptsuche starten");
+	sendProgressiveResponse(input);
 	sessionAttributeService.setSessionAttributes(input.getAttributesManager().getSessionAttributes());
 	IntentRequest intentRequest = (IntentRequest) input.getRequestEnvelope().getRequest();
 	slotService.setSlots(intentRequest.getIntent().getSlots());
@@ -95,6 +100,15 @@ public class RezeptSucheHandler implements RequestHandler {
 	}
 	return input.getResponseBuilder().withSpeech(speechText).withReprompt(speechText)
 		.withSimpleCard(RezeptVorschlag.SKILL_TITEL, speechText).withShouldEndSession(false).build();
+    }
+
+    private void sendProgressiveResponse(HandlerInput input) {
+	String requestId = input.getRequestEnvelope().getRequest().getRequestId();
+	DirectiveServiceClient directiveServiceClient = input.getServiceClientFactory().getDirectiveService();
+	SendDirectiveRequest sendDirectiveRequest = SendDirectiveRequest.builder()
+		.withDirective(SpeakDirective.builder().withSpeech("Ich suche mal nach Rezepten").build())
+		.withHeader(Header.builder().withRequestId(requestId).build()).build();
+	directiveServiceClient.enqueue(sendDirectiveRequest);
     }
 
 }
