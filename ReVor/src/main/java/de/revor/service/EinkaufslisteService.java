@@ -5,6 +5,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.amazon.ask.dispatcher.request.handler.HandlerInput;
 import com.amazon.ask.model.services.listManagement.AlexaList;
 import com.amazon.ask.model.services.listManagement.AlexaListItem;
 import com.amazon.ask.model.services.listManagement.AlexaListMetadata;
@@ -23,14 +24,16 @@ public class EinkaufslisteService {
 
     private static EinkaufslisteService einkaufslisteService;
 
+    private HandlerUtilService handlerUtilService = HandlerUtilService.getImpementation();
+
     private ListManagementServiceClient listManagementServiceClient;
 
     private EinkaufslisteService() {
 	listManagementServiceClient = null;
     }
 
-    public void setListManagementServiceClient(ListManagementServiceClient listManagementServiceClient) {
-	this.listManagementServiceClient = listManagementServiceClient;
+    public void setListManagementServiceClient(HandlerInput input) {
+	this.listManagementServiceClient = handlerUtilService.getListManagementServiceClient(input);
     }
 
     public static EinkaufslisteService getImplementation() {
@@ -59,19 +62,17 @@ public class EinkaufslisteService {
 	});
     }
 
-    private String getShoppingListId(ListManagementServiceClient listClient) {
+    private String getShoppingListId(ListManagementServiceClient listManagementServiceClient) {
 	StringBuffer sb = new StringBuffer();
-	if (listClient != null) {
-	    AlexaListsMetadata listsMetadata = listClient.getListsMetadata();
-	    if (listsMetadata != null) {
-		List<AlexaListMetadata> lists = listsMetadata.getLists();
-		if (lists != null) {
-		    lists.forEach(m -> {
-			if (m.getName().equals(ALEXA_SHOPPING_LIST_NAME)) {
-			    sb.append(m.getListId());
-			}
-		    });
-		}
+	AlexaListsMetadata listsMetadata = listManagementServiceClient.getListsMetadata();
+	if (listsMetadata != null) {
+	    List<AlexaListMetadata> lists = listsMetadata.getLists();
+	    if (lists != null) {
+		lists.forEach(m -> {
+		    if (m.getName().equals(ALEXA_SHOPPING_LIST_NAME)) {
+			sb.append(m.getListId());
+		    }
+		});
 	    }
 	}
 	return sb.length() <= 0 ? null : sb.toString();

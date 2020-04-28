@@ -95,6 +95,12 @@
 			<artifactId>aws-java-sdk-ses</artifactId>
 			<version>1.11.762</version>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-text</artifactId>
+			<version>1.8</version>
+		</dependency>
+
 	</dependencies>
 	<build>
 		<plugins>

@@ -10,7 +10,6 @@ import static org.mockito.Mockito.when;
 import org.junit.jupiter.api.Test;
 import org.mockito.internal.util.reflection.FieldSetter;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBScanExpression;
 
@@ -21,23 +20,8 @@ import de.revor.datatype.Schweregrad;
 class RezeptSucheServiceTest {
 
     @Test
-    void setAmazonDynamoDB() {
-	RezeptSucheService rezeptSucheService = RezeptSucheService.getImplementation();
-	rezeptSucheService.setAmazonDynamoDB(mock(AmazonDynamoDB.class));
-	boolean nullPointer = false;
-	try {
-	    rezeptSucheService.setAmazonDynamoDB(null);
-	} catch (NullPointerException e) {
-	    nullPointer = true;
-	}
-	assertTrue(nullPointer);
-
-    }
-
-    @Test
     void findeRezepte() throws NoSuchFieldException, SecurityException {
 	RezeptSucheService rezeptSucheService = RezeptSucheService.getImplementation();
-	rezeptSucheService.setAmazonDynamoDB(mock(AmazonDynamoDB.class));
 
 	boolean illegalArgumentException = false;
 	try {
@@ -45,6 +29,7 @@ class RezeptSucheServiceTest {
 	} catch (IllegalArgumentException e) {
 	    illegalArgumentException = true;
 	}
+
 	assertTrue(illegalArgumentException);
 
 	for (Mahlzeit mahlzeit : Mahlzeit.values()) {
@@ -69,8 +54,8 @@ class RezeptSucheServiceTest {
 
 	DynamoDBMapper dynamoDBMapper = mock(DynamoDBMapper.class);
 	when(dynamoDBMapper.scan(eq(Rezept.class), any(DynamoDBScanExpression.class))).thenReturn(null);
-	FieldSetter.setField(rezeptSucheService,
-		rezeptSucheService.getClass().getDeclaredField("dynamoDBMapper"), dynamoDBMapper);
+	FieldSetter.setField(rezeptSucheService, rezeptSucheService.getClass().getDeclaredField("dynamoDBMapper"),
+		dynamoDBMapper);
 	for (Mahlzeit mahlzeit : Mahlzeit.values()) {
 	    for (Schweregrad schweregrad : Schweregrad.values()) {
 		boolean erfolg = true;
@@ -86,8 +71,8 @@ class RezeptSucheServiceTest {
 
 	DynamoDBMapper dynamoDBMapperNull = mock(DynamoDBMapper.class);
 	when(dynamoDBMapperNull.scan(eq(Rezept.class), any(DynamoDBScanExpression.class))).thenReturn(null);
-	FieldSetter.setField(rezeptSucheService,
-		rezeptSucheService.getClass().getDeclaredField("dynamoDBMapper"), dynamoDBMapperNull);
+	FieldSetter.setField(rezeptSucheService, rezeptSucheService.getClass().getDeclaredField("dynamoDBMapper"),
+		dynamoDBMapperNull);
 	for (Mahlzeit mahlzeit : Mahlzeit.values()) {
 	    for (Schweregrad schweregrad : Schweregrad.values()) {
 		assertNull(rezeptSucheService.findeRezepte(mahlzeit, schweregrad));

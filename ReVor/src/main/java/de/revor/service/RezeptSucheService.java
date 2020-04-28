@@ -22,6 +22,8 @@ import de.revor.datatype.Schweregrad;
 
 public class RezeptSucheService {
 
+    private HandlerUtilService handlerInputUtilService = HandlerUtilService.getImpementation();
+    
     private static RezeptSucheService rezeptSucheService = null;
 
     private static final Logger logger = LoggerFactory.getLogger(RezeptSucheService.class);
@@ -29,18 +31,15 @@ public class RezeptSucheService {
     private DynamoDBMapper dynamoDBMapper;
 
     private RezeptSucheService() {
-	dynamoDBMapper = null;
-    }
-
-    public static RezeptSucheService getImplementation() {
-	return rezeptSucheService == null ? new RezeptSucheService() : rezeptSucheService;
-    }
-
-    public void setAmazonDynamoDB(AmazonDynamoDB amazonDynamoDB) {
+	AmazonDynamoDB amazonDynamoDB = handlerInputUtilService.getAmazonDynamoDB();
 	if (amazonDynamoDB == null) {
 	    throw new NullPointerException();
 	}
 	dynamoDBMapper = new DynamoDBMapper(amazonDynamoDB);
+    }
+
+    public static RezeptSucheService getImplementation() {
+	return rezeptSucheService == null ? new RezeptSucheService() : rezeptSucheService;
     }
 
     public List<Rezept> findeRezepte(Mahlzeit mahlzeit, Schweregrad schweregrad) {

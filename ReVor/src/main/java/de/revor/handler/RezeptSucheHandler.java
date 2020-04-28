@@ -7,6 +7,12 @@ import static de.revor.datatype.SkillSessionAttributeNames.GEFUNDENE_REZEPTE_IND
 import static de.revor.datatype.SkillSlotNames.ANZAHLPORTIONEN;
 import static de.revor.datatype.SkillSlotNames.MAHLZEIT;
 import static de.revor.datatype.SkillSlotNames.SCHWEREGRAD;
+import static de.revor.datatype.SpeechText.KEIN_REZEPT_GEFUNDEN;
+import static de.revor.datatype.SpeechText.PERMISSION_FEHLET;
+import static de.revor.datatype.SpeechText.REZEPT_GEFUNEN;
+import static de.revor.datatype.SpeechText.REZEPT_SUCHE_PROGRESSIV;
+import static de.revor.datatype.SpeechTextPlaceHolder.REZEPTTITEL;
+import static de.revor.datatype.SpeechTextPlaceHolder.SUCHPARAMETER;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,20 +22,16 @@ import org.slf4j.LoggerFactory;
 
 import com.amazon.ask.dispatcher.request.handler.HandlerInput;
 import com.amazon.ask.dispatcher.request.handler.RequestHandler;
-import com.amazon.ask.model.IntentRequest;
+import com.amazon.ask.model.PermissionStatus;
+import com.amazon.ask.model.Permissions;
 import com.amazon.ask.model.Response;
-import com.amazon.ask.model.services.directive.DirectiveServiceClient;
-import com.amazon.ask.model.services.directive.Header;
-import com.amazon.ask.model.services.directive.SendDirectiveRequest;
-import com.amazon.ask.model.services.directive.SpeakDirective;
-import com.amazonaws.SdkClientException;
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
+import com.amazon.ask.model.Scope;
 
 import de.revor.RezeptVorschlag;
 import de.revor.datatype.Mahlzeit;
 import de.revor.datatype.Rezept;
 import de.revor.datatype.Schweregrad;
+import de.revor.service.HandlerUtilService;
 import de.revor.service.RezeptSucheService;
 import de.revor.service.SessionAttributeService;
 import de.revor.service.SlotService;
@@ -44,8 +46,11 @@ public class RezeptSucheHandler implements RequestHandler {
 
     private SessionAttributeService sessionAttributeService = SessionAttributeService.getImplementation();
 
+    private HandlerUtilService handlerInputUtilService = HandlerUtilService.getImpementation();
+
     private SlotService slotService = SlotService.getImplementation();
-    private String speechText = "";
+
+    private String parameter = "";
 
     public boolean canHandle(HandlerInput input) {
 	return input.matches(intentName(INSTANT_NAME));
@@ -53,46 +58,47 @@ public class RezeptSucheHandler implements RequestHandler {
 
     public Optional<Response> handle(HandlerInput input) {
 	logger.debug("Rezeptsuche starten");
-	speechText = "";
-	sendProgressiveResponse(input, "Ich suche nach Rezepten");
-	sessionAttributeService.setSessionAttributes(input.getAttributesManager().getSessionAttributes());
-	IntentRequest intentRequest = (IntentRequest) input.getRequestEnvelope().getRequest();
-	slotService.setSlots(intentRequest.getIntent().getSlots());
-	try {
-	    rezeptSuche.setAmazonDynamoDB(AmazonDynamoDBClientBuilder.standard().build());
-	} catch (SdkClientException e) {
-	    logger.error("DB-Fehler", e);
-	    rezeptSuche.setAmazonDynamoDB(AmazonDynamoDBClientBuilder.standard().withRegion(Regions.EU_WEST_2).build());
+	List<String> list = RezeptVorschlag.getBenoetigtePermissions();
+	boolean permissonsOk = pruefePermissions(input, list);
+	if (!permissonsOk) {
+	    return permissionErfragen(input, list);
 	}
+	String speechText = "";
+	parameter = "";
+	handlerInputUtilService.sendProgressiveResponse(input, REZEPT_SUCHE_PROGRESSIV.getSpeechText());
+
+	sessionAttributeService.setSessionAttributes(input);
+	slotService.setSlots(input);
 
 	Mahlzeit mahlzeit = ermittleMahlzeit();
 
 	Schweregrad schweregrad = ermittleSchweregrad();
-	
+
 	int anzahlportionen = errmittleAnzahlPortionen();
-	
-	speechText = "Ich habe leider nichts gefunden mit deinen Angaben: " + speechText;
+
+	speechText = KEIN_REZEPT_GEFUNDEN.getSpeechText(SUCHPARAMETER.toString(), parameter);
 	if (sessionAttributeService.isSessionAttributEmpty(GEFUNDENE_REZEPTE)) {
 	    List<Rezept> rezepte = rezeptSuche.findeRezepte(mahlzeit, schweregrad);
 	    if (rezepte.size() > 0) {
-		speechText = "Ich habe " + rezepte.get(0).getTitel() + " gefunden, willst du das vielleicht kochen?";
+		speechText = REZEPT_GEFUNEN.getSpeechText(REZEPTTITEL.toString(), rezepte.get(0).getTitel());
 	    }
 	    sessionAttributeService.putSessionAttribut(GEFUNDENE_REZEPTE, rezepte);
 	    sessionAttributeService.putSessionAttribut(GEFUNDENE_REZEPTE_INDEX, 0);
 	    sessionAttributeService.putSessionAttribut(ANZAHL_PORTIONEN, anzahlportionen);
 	}
 	return input.getResponseBuilder().withSpeech(speechText).withReprompt(speechText)
-		.withSimpleCard(RezeptVorschlag.SKILL_TITEL, speechText).withShouldEndSession(false).build();
+		.withSimpleCard(RezeptVorschlag.SKILL_TITEL, speechText).withLinkAccountCard()
+		.withShouldEndSession(false).build();
     }
 
     private int errmittleAnzahlPortionen() {
 	int anzahlportionen = 1;
 	if (!slotService.isSlotEmpty(ANZAHLPORTIONEN)) {
 	    anzahlportionen = slotService.getInteger(ANZAHLPORTIONEN);
-	    speechText += " die anzahl portionen " + anzahlportionen + ".";
+	    parameter += " die anzahl portionen " + anzahlportionen + ".";
 	} else {
 	    // Erfrage Anzahl Portionen
-	    speechText += " keine anzahl portionen.";
+	    parameter += " keine anzahl portionen.";
 	}
 	return anzahlportionen;
     }
@@ -101,33 +107,45 @@ public class RezeptSucheHandler implements RequestHandler {
 	Schweregrad schweregrad = Schweregrad.EGAL;
 	if (!slotService.isSlotEmpty(SCHWEREGRAD)) {
 	    schweregrad = Schweregrad.getSchweregradOfWert(slotService.getMappedName(SCHWEREGRAD));
-	    speechText += " der Schweregrad " + schweregrad.getWert() + ".";
+	    parameter += " der Schweregrad " + schweregrad.getWert() + ".";
 	} else {
 	    // Erfrage Schweregrad
-	    speechText += " kein schweregrad.";
+	    parameter += " kein schweregrad.";
 	}
 	return schweregrad;
+    }
+
+    private boolean pruefePermissions(HandlerInput input, List<String> list) {
+	boolean permissonsOk = true;
+	Permissions permissions = input.getRequestEnvelope().getContext().getSystem().getUser().getPermissions();
+	if (null == permissions) {
+	    permissonsOk = false;
+	} else {
+	    for (String permission : list) {
+		Scope scope = permissions.getScopes().get(permission);
+		if (scope == null || scope.getStatus() != PermissionStatus.GRANTED) {
+		    permissonsOk = false;
+		}
+	    }
+	}
+	return permissonsOk;
+    }
+
+    private Optional<Response> permissionErfragen(HandlerInput input, List<String> list) {
+	String speechText = PERMISSION_FEHLET.getSpeechText();
+	return input.getResponseBuilder().withSpeech(speechText).withAskForPermissionsConsentCard(list).build();
     }
 
     private Mahlzeit ermittleMahlzeit() {
 	Mahlzeit mahlzeit = Mahlzeit.JETZT;
 	if (!slotService.isSlotEmpty(MAHLZEIT)) {
 	    mahlzeit = Mahlzeit.getMahlzeitOfWert(slotService.getMappedName(MAHLZEIT));
-	    speechText += " die tageszeit " + mahlzeit.getWert() + ".";
+	    parameter += " die tageszeit " + mahlzeit.getWert() + ".";
 	} else {
 	    // Erfrage Tageszeit
-	    speechText += " keine tageszeit.";
+	    parameter += " keine tageszeit.";
 	}
 	return mahlzeit;
-    }
-
-    private void sendProgressiveResponse(HandlerInput input, String speechText) {
-	String requestId = input.getRequestEnvelope().getRequest().getRequestId();
-	DirectiveServiceClient directiveServiceClient = input.getServiceClientFactory().getDirectiveService();
-	SendDirectiveRequest sendDirectiveRequest = SendDirectiveRequest.builder()
-		.withDirective(SpeakDirective.builder().withSpeech(speechText).build())
-		.withHeader(Header.builder().withRequestId(requestId).build()).build();
-	directiveServiceClient.enqueue(sendDirectiveRequest);
     }
 
 }

@@ -11,6 +11,7 @@ import com.amazon.ask.dispatcher.request.handler.RequestHandler;
 import com.amazon.ask.model.Response;
 
 import de.revor.RezeptVorschlag;
+import de.revor.datatype.SpeechText;
 
 public class CancelandStopIntentHandler implements RequestHandler {
 
@@ -26,7 +27,7 @@ public class CancelandStopIntentHandler implements RequestHandler {
 
     public Optional<Response> handle(HandlerInput input) {
 	logger.debug("Es soll beendet werden");
-	String speechText = "Aufwiedersehn";
+	String speechText = SpeechText.VERABSCHIEDEN.getSpeechText();
 	return input.getResponseBuilder().withSpeech(speechText).withSimpleCard(RezeptVorschlag.SKILL_TITEL, speechText)
 		.build();
     }

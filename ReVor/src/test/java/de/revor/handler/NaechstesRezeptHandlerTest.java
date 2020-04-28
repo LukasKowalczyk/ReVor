@@ -16,7 +16,6 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.mockito.internal.util.reflection.FieldSetter;
 
-import com.amazon.ask.attributes.AttributesManager;
 import com.amazon.ask.dispatcher.request.handler.HandlerInput;
 import com.amazon.ask.model.Response;
 import com.amazon.ask.response.ResponseBuilder;
@@ -61,21 +60,13 @@ class NaechstesRezeptHandlerTest {
 	try {
 	    naechstesRezeptHandler.handle(null);
 	    assertTrue(false);
-	} catch (NullPointerException e) {
+	} catch (IllegalArgumentException e) {
 	    assertTrue(true);
 	}
 	HandlerInput handlerInput = mock(HandlerInput.class);
 	SessionAttributeService sessionAttributeService = mock(SessionAttributeService.class);
-	AttributesManager attributesManager = mock(AttributesManager.class);
 	when(handlerInput.getResponseBuilder()).thenReturn(new ResponseBuilder());
-	when(handlerInput.getAttributesManager()).thenReturn(attributesManager);
 
-	when(attributesManager.getSessionAttributes()).thenReturn(null);
-	FieldSetter.setField(naechstesRezeptHandler,
-		naechstesRezeptHandler.getClass().getDeclaredField("sessionAttributeService"), sessionAttributeService);
-	assertTrue(naechstesRezeptHandler.handle(handlerInput).isPresent());
-
-	when(attributesManager.getSessionAttributes()).thenReturn(generateLeereSessionAttributes());
 	FieldSetter.setField(naechstesRezeptHandler,
 		naechstesRezeptHandler.getClass().getDeclaredField("sessionAttributeService"), sessionAttributeService);
 	assertTrue(naechstesRezeptHandler.handle(handlerInput).isPresent());
@@ -136,7 +127,6 @@ class NaechstesRezeptHandlerTest {
 		naechstesRezeptHandler.getClass().getDeclaredField("sessionAttributeService"), sessionAttributeService);
 	response = naechstesRezeptHandler.handle(handlerInput);
 	assertTrue(response.isPresent());
-
 	assertTrue(response.get().getOutputSpeech().toString().indexOf("Ich habe leider keine Rezepte mehr") > -1);
 
     }
@@ -167,14 +157,6 @@ class NaechstesRezeptHandlerTest {
 	hashMap.put("name", "zutat");
 	hashMap.put("einheit", "g");
 	return hashMap;
-    }
-
-    private Map<String, Object> generateLeereSessionAttributes() {
-	HashMap<String, Object> ausg = new HashMap<>();
-	for (SkillSessionAttributeNames skillSessionAttributeNames : SkillSessionAttributeNames.values()) {
-	    ausg.put(skillSessionAttributeNames.name(), null);
-	}
-	return ausg;
     }
 
 }

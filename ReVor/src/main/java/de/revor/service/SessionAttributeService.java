@@ -2,10 +2,14 @@ package de.revor.service;
 
 import java.util.Map;
 
+import com.amazon.ask.dispatcher.request.handler.HandlerInput;
+
 import de.revor.datatype.SkillSessionAttributeNames;
 
 public class SessionAttributeService {
-
+    
+    private HandlerUtilService handlerUtilService = HandlerUtilService.getImpementation();
+    
     private static SessionAttributeService sessionAttributeService;
 
     private Map<String, Object> sessionAttributes;
@@ -18,8 +22,8 @@ public class SessionAttributeService {
 	return sessionAttributeService == null ? new SessionAttributeService() : sessionAttributeService;
     }
 
-    public void setSessionAttributes(Map<String, Object> sessionAttributes) {
-	this.sessionAttributes = sessionAttributes;
+    public void setSessionAttributes(HandlerInput handlerInput) {
+	this.sessionAttributes = handlerUtilService.getSessionAttributes(handlerInput);
     }
 
     @SuppressWarnings("unchecked")

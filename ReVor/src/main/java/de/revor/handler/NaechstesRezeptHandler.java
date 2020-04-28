@@ -3,6 +3,10 @@ package de.revor.handler;
 import static com.amazon.ask.request.Predicates.intentName;
 import static de.revor.datatype.SkillSessionAttributeNames.GEFUNDENE_REZEPTE;
 import static de.revor.datatype.SkillSessionAttributeNames.GEFUNDENE_REZEPTE_INDEX;
+import static de.revor.datatype.SpeechText.KEINE_REZEPTE_GEFUNDEN;
+import static de.revor.datatype.SpeechText.KEINE_WEITEREN_REZEPTE;
+import static de.revor.datatype.SpeechText.NAECHSTES_REZEPT_GEFUNDEN;
+import static de.revor.datatype.SpeechTextPlaceHolder.REZEPTTITEL;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +32,7 @@ public class NaechstesRezeptHandler implements RequestHandler {
 
     private SessionAttributeService sessionAttributeService = SessionAttributeService.getImplementation();
 
+
     @Override
     public boolean canHandle(HandlerInput input) {
 	return input.matches(intentName(AMAZON_NO_INTENT));
@@ -36,7 +41,7 @@ public class NaechstesRezeptHandler implements RequestHandler {
     @Override
     public Optional<Response> handle(HandlerInput input) {
 	logger.debug("Nächstes Rezept vorschlagen");
-	sessionAttributeService.setSessionAttributes(input.getAttributesManager().getSessionAttributes());
+	sessionAttributeService.setSessionAttributes(input);
 	String speechText = "";
 	boolean shouldEndSession = false;
 	List<Rezept> rezepte = mappRezepteAusSessionAttribut();
@@ -46,16 +51,17 @@ public class NaechstesRezeptHandler implements RequestHandler {
 	    index++;
 	    if (rezepte.size() <= index) {
 		// wir haben nichts mehr, session soll beendet werden!
-		speechText = "Ich habe leider keine Rezepte mehr, versuch doch mal einen anderen schweregrad";
+		speechText = KEINE_WEITEREN_REZEPTE.getSpeechText();
 		sessionAttributeService.putSessionAttribut(GEFUNDENE_REZEPTE, null);
 		index = null;
 		shouldEndSession = true;
 	    } else {
-		speechText = "Willst du vielleicht " + rezepte.get(index).getTitel() + " kochen?";
+		speechText = NAECHSTES_REZEPT_GEFUNDEN.getSpeechText(REZEPTTITEL.toString(),
+			rezepte.get(index).getTitel());
 	    }
 	    sessionAttributeService.putSessionAttribut(GEFUNDENE_REZEPTE_INDEX, index);
 	} else {
-	    speechText = "Ich habe leider keine Rezepte!";
+	    speechText = KEINE_REZEPTE_GEFUNDEN.getSpeechText();
 	}
 	return input.getResponseBuilder().withSpeech(speechText).withReprompt(speechText)
 		.withSimpleCard(RezeptVorschlag.SKILL_TITEL, speechText).withShouldEndSession(shouldEndSession).build();

@@ -11,6 +11,7 @@ import com.amazon.ask.model.Response;
 
 import static com.amazon.ask.request.Predicates.intentName;
 import de.revor.RezeptVorschlag;
+import de.revor.datatype.SpeechText;
 
 public class HelpIntentHandler implements RequestHandler {
 
@@ -24,7 +25,7 @@ public class HelpIntentHandler implements RequestHandler {
 
     public Optional<Response> handle(HandlerInput input) {
 	logger.debug("Anwender braucht hilfe");
-	String speechText = "Frag einfach: \"was soll ich kochen?\" oder sage: \"stop\"";
+	String speechText = SpeechText.HILFE.getSpeechText();
 	return input.getResponseBuilder().withSpeech(speechText).withSimpleCard(RezeptVorschlag.SKILL_TITEL, speechText)
 		.withReprompt(speechText).build();
     }
