@@ -87,8 +87,7 @@ public class RezeptSucheHandler implements RequestHandler {
 	    sessionAttributeService.putSessionAttribut(ANZAHL_PORTIONEN, anzahlportionen);
 	}
 	return input.getResponseBuilder().withSpeech(speechText).withReprompt(speechText)
-		.withSimpleCard(RezeptVorschlag.SKILL_TITEL, speechText).withLinkAccountCard()
-		.withShouldEndSession(false).build();
+		.withSimpleCard(RezeptVorschlag.SKILL_TITEL, speechText).withShouldEndSession(false).build();
     }
 
     private int errmittleAnzahlPortionen() {
