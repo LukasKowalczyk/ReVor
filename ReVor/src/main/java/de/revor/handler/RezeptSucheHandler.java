@@ -8,7 +8,6 @@ import static de.revor.datatype.SkillSlotNames.ANZAHLPORTIONEN;
 import static de.revor.datatype.SkillSlotNames.MAHLZEIT;
 import static de.revor.datatype.SkillSlotNames.SCHWEREGRAD;
 import static de.revor.datatype.SpeechText.KEIN_REZEPT_GEFUNDEN;
-import static de.revor.datatype.SpeechText.PERMISSION_FEHLET;
 import static de.revor.datatype.SpeechText.REZEPT_GEFUNEN;
 import static de.revor.datatype.SpeechText.REZEPT_SUCHE_PROGRESSIV;
 import static de.revor.datatype.SpeechTextPlaceHolder.REZEPTTITEL;
@@ -22,10 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import com.amazon.ask.dispatcher.request.handler.HandlerInput;
 import com.amazon.ask.dispatcher.request.handler.RequestHandler;
-import com.amazon.ask.model.PermissionStatus;
-import com.amazon.ask.model.Permissions;
 import com.amazon.ask.model.Response;
-import com.amazon.ask.model.Scope;
 
 import de.revor.RezeptVorschlag;
 import de.revor.datatype.Mahlzeit;
@@ -58,11 +54,6 @@ public class RezeptSucheHandler implements RequestHandler {
 
     public Optional<Response> handle(HandlerInput input) {
 	logger.debug("Rezeptsuche starten");
-	List<String> list = RezeptVorschlag.getBenoetigtePermissions();
-	boolean permissonsOk = pruefePermissions(input, list);
-	if (!permissonsOk) {
-	    return permissionErfragen(input, list);
-	}
 	String speechText = "";
 	parameter = "";
 	handlerInputUtilService.sendProgressiveResponse(input, REZEPT_SUCHE_PROGRESSIV.getSpeechText());
@@ -114,26 +105,6 @@ public class RezeptSucheHandler implements RequestHandler {
 	return schweregrad;
     }
 
-    private boolean pruefePermissions(HandlerInput input, List<String> list) {
-	boolean permissonsOk = true;
-	Permissions permissions = input.getRequestEnvelope().getContext().getSystem().getUser().getPermissions();
-	if (null == permissions) {
-	    permissonsOk = false;
-	} else {
-	    for (String permission : list) {
-		Scope scope = permissions.getScopes().get(permission);
-		if (scope == null || scope.getStatus() != PermissionStatus.GRANTED) {
-		    permissonsOk = false;
-		}
-	    }
-	}
-	return permissonsOk;
-    }
-
-    private Optional<Response> permissionErfragen(HandlerInput input, List<String> list) {
-	String speechText = PERMISSION_FEHLET.getSpeechText();
-	return input.getResponseBuilder().withSpeech(speechText).withAskForPermissionsConsentCard(list).build();
-    }
 
     private Mahlzeit ermittleMahlzeit() {
 	Mahlzeit mahlzeit = Mahlzeit.JETZT;

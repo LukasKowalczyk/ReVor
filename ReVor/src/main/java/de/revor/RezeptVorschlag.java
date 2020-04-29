@@ -11,6 +11,7 @@ import de.revor.handler.CancelandStopIntentHandler;
 import de.revor.handler.HelpIntentHandler;
 import de.revor.handler.LaunchRequestHandler;
 import de.revor.handler.NaechstesRezeptHandler;
+import de.revor.handler.PermissionExceptionHandler;
 import de.revor.handler.RezeptAusgewaehltHandler;
 import de.revor.handler.RezeptSucheHandler;
 import de.revor.handler.SessionEndedRequestHandler;
@@ -23,7 +24,7 @@ public class RezeptVorschlag extends SkillStreamHandler {
 
     @SuppressWarnings("unchecked")
     private static Skill getSkill() {
-	return Skills.standard()
+	return Skills.standard().addExceptionHandler(new PermissionExceptionHandler())
 		.addRequestHandlers(new CancelandStopIntentHandler(), new RezeptAusgewaehltHandler(),
 			new NaechstesRezeptHandler(), new RezeptSucheHandler(), new HelpIntentHandler(),
 			new LaunchRequestHandler(), new SessionEndedRequestHandler())
