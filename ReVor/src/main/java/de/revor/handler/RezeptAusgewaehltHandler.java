@@ -20,6 +20,8 @@ import org.slf4j.LoggerFactory;
 import com.amazon.ask.dispatcher.request.handler.HandlerInput;
 import com.amazon.ask.dispatcher.request.handler.RequestHandler;
 import com.amazon.ask.model.Response;
+import com.amazon.ask.model.ui.Card;
+import com.amazon.ask.model.ui.StandardCard;
 
 import de.revor.RezeptVorschlag;
 import de.revor.datatype.Rezept;
@@ -75,7 +77,6 @@ public class RezeptAusgewaehltHandler implements RequestHandler {
 	    logger.error("Die Email konnte nicht gesendet werden!", e);
 	    speechText = EMAIL_SENDEN_FEHLER.getSpeechText();
 	}
-
 	shouldEndSession = true;
 	return input.getResponseBuilder().withSpeech(speechText).withReprompt(speechText)
 		.withSimpleCard(RezeptVorschlag.SKILL_TITEL, speechText).withShouldEndSession(shouldEndSession).build();
@@ -93,7 +94,6 @@ public class RezeptAusgewaehltHandler implements RequestHandler {
 	Rezept rezept = rezepte.get(index);
 	return rezept;
     }
-
 
     private List<Rezept> mappRezepteAusSessionAttribut() {
 	ArrayList<Map<String, Object>> sessionAttributesRezepte = sessionAttributeService
