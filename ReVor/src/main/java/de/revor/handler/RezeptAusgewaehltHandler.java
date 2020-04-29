@@ -20,8 +20,6 @@ import org.slf4j.LoggerFactory;
 import com.amazon.ask.dispatcher.request.handler.HandlerInput;
 import com.amazon.ask.dispatcher.request.handler.RequestHandler;
 import com.amazon.ask.model.Response;
-import com.amazon.ask.model.ui.Card;
-import com.amazon.ask.model.ui.StandardCard;
 
 import de.revor.RezeptVorschlag;
 import de.revor.datatype.Rezept;
